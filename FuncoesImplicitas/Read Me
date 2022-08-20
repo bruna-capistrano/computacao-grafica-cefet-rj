@@ -1,3 +1,0 @@
-funcoesimplicitas.py desenha dois tipos de funções implícitas: Parabolóide Circular e Parabolóide Hiperbólico.
-
-Para que um deles seja desenhado, basta comentar a função que não será desenhada em desenha().

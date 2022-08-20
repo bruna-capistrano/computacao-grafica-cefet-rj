@@ -18,27 +18,27 @@ from gl_lib.gl_screenshot import save_screenshot_rgb
 
 from misc.sphere_tessellation import uniform_tessellate_half_sphere
 
-# program configurations
+# configurações do programa
 windowSize = (800, 600)
 windowBackgroundColor = (0.0, 0.0, 0.0, 1.0)
 zNear = 0.1
 zFar = 300.0
 
-# if using anisotropic shading
+# anisotropic shading
 aniso = False
 threadDir = normalized(np.asarray([-2.0, 1.0, -1.0], np.float32))
 
-# lighting configurations
+# configurações de iluminação
 lightColor = np.asarray([1.0, 1.0, 1.0], np.float32)
 objectColor = np.asarray([0.5, 0.3, 0.4], np.float32)
 ambientCoef = 0.1
 specularCoef = 0.6
 specularP = 64
 
-# the camera
+# camera
 camera = FPSCamera()
 
-# vertices and elements
+# vertices e elementos
 vertices = np.asarray(
     [
         -0.5, 0.5, -0.5,
@@ -71,7 +71,7 @@ elements = np.asarray(
     , np.uint32
 )
 
-# compute normal for each surface and form a new array
+# computa normal para cada superficie e forma novo array
 tempArray = []
 tempVertices = vertices.reshape((-1, 3))
 for i in range(0, elements.size, 3):
@@ -83,7 +83,7 @@ for i in range(0, elements.size, 3):
 cubeVertexCount = len(tempArray)
 cubeData = np.asarray(tempArray, np.float32).flatten()
 
-# get the vertex data of the sphere
+# pega dados dos vertices
 sphereTriangles = uniform_tessellate_half_sphere()
 sphereData = [np.concatenate([tri.vertices, tri.normals], axis=1) for tri in sphereTriangles]
 sphereVertexCount = 3 * len(sphereData)
@@ -182,7 +182,7 @@ def debug_message_callback(source, msg_type, msg_id, severity, length, raw, user
     print('debug', source, msg_type, msg_id, severity, msg)
 
 
-# stores which keys are pressed and handle key press in the main loop
+# armazena tecla pressionada
 keyArray = np.array([False] * 300, np.bool)
 
 
@@ -194,10 +194,10 @@ def window_keypress_callback(theWindow, key, scanCode, action, mods):
 
     if action == glfw.PRESS:
         if key == glfw.KEY_ESCAPE:
-            # respond escape here
+            #  escape 
             glfw.set_window_should_close(theWindow, True)
         elif key == glfw.KEY_P:
-            # respond screenshot keypress
+            #  screenshot keypress
             nowTime = datetime.now()
             timeString = nowTime.strftime('%Y-%m-%d_%H:%M:%S')
             screenshotFmt = 'screenshot_{}.png'
@@ -239,10 +239,10 @@ def window_scroll_callback(theWindow, xOffset, yOffset):
 
 if __name__ == '__main__':
 
-    # initialize glfw
+    # inicializa glfw
     glfw.init()
 
-    # set glfw config
+    #  glfw config
     glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
     glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
     glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
@@ -250,40 +250,38 @@ if __name__ == '__main__':
     if platform.system().lower() == 'darwin':
         glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, GL_TRUE)
 
-    # create window
+    # cria window
     theWindow = glfw.create_window(windowSize[0], windowSize[1], 'Phong Shading', None, None)
     # make window the current context
     glfw.make_context_current(theWindow)
 
-    # enable z-buffer
+    #  z-buffer
     glEnable(GL_DEPTH_TEST)
 
     if platform.system().lower() != 'darwin':
-        # enable debug output
-        # doesn't seem to work on macOS
+        #  debug output
         glEnable(GL_DEBUG_OUTPUT)
         glDebugMessageCallback(GLDEBUGPROC(debug_message_callback), None)
-    # set resizing callback function
     # glfw.set_framebuffer_size_callback(theWindow, window_resize_callback)
 
     glfw.set_key_callback(theWindow, window_keypress_callback)
-    # disable cursor
+    # desabilita cursor
     glfw.set_input_mode(theWindow, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
     glfw.set_cursor_pos_callback(theWindow, window_cursor_callback)
-    # initialize cursor position
+    # inicializa cursor position
     cursorPos = glfw.get_cursor_pos(theWindow)
 
     glfw.set_scroll_callback(theWindow, window_scroll_callback)
 
-    # create VBOs to store vertices, normals and elements
+    #  VBOs para armazenar vertices, normaiss e elementos
     cubeDataVBO = VBO(cubeData, usage='GL_STATIC_DRAW')
     cubeDataVBO.create_buffers()
 
     sphereDataVBO = VBO(sphereData, usage='GL_STATIC_DRAW')
     sphereDataVBO.create_buffers()
 
-    # create VAO to describe array information
+    # cria VAO para descrever array 
     triangleVAO, sphereVAO = glGenVertexArrays(2)
 
     # bind VAO
@@ -317,7 +315,7 @@ if __name__ == '__main__':
     anisoRenderProgram = GLProgram(vertexShaderSource, anisoFragmentShaderSource)
     anisoRenderProgram.compile_and_link()
 
-    # create uniforms
+    # cria uniforms
     renderProgramUniforms = {
         'projection': GLUniform(renderProgram.get_program_id(), 'projection', 'mat4f'),
         'view': GLUniform(renderProgram.get_program_id(), 'view', 'mat4f'),
@@ -347,12 +345,12 @@ if __name__ == '__main__':
 
     uniforms = renderProgramUniforms
 
-    # change drawing mode
+    
     # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
     rotateDegree = 0.0
 
-    # keep rendering until the window should be closed
+    # renderiza até janela fechar
     while not glfw.window_should_close(theWindow):
         # set background color
         glClearColor(*windowBackgroundColor)
@@ -365,7 +363,7 @@ if __name__ == '__main__':
             renderProgram.use()
             uniforms = renderProgramUniforms
 
-        # update shading related uniforms
+        #  shading related uniforms
         uniforms['viewPos'].update(camera.get_eye_pos())
         uniforms['lightPos'].update(camera.get_eye_pos())
         uniforms['lightColor'].update(lightColor)
@@ -373,13 +371,13 @@ if __name__ == '__main__':
         uniforms['ambientCoef'].update(ambientCoef)
         uniforms['specularCoef'].update(specularCoef)
         uniforms['specularP'].update(specularP)
-        # update transformation related uniforms
+        #  transformation related uniforms
         aspect = windowSize[0] / windowSize[1]
         uniforms['projection'].update(camera.get_projection_matrix(aspect, zNear, zFar))
         uniforms['view'].update(camera.get_view_matrix())
 
 
-        # generate a rotating animation
+        # a rotating animation
         uniforms['model'].update(translate(-1, 0, 0) @ rotate(unit_z(), rotateDegree, True))
 
         if aniso:
